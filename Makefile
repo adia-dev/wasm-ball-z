@@ -22,9 +22,11 @@ DIST_EXTENSION := html
 SRC_FILES := $(shell find $(SRC_DIR) -type f -name '*.cpp')
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
+CLANG_FORMAT_STYLE := LLVM
+
 .PHONY := all clean bear
 
-all: app wasm
+all: format app wasm
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
@@ -44,6 +46,9 @@ wasm: $(SRC_FILES)
 
 wasm_run: wasm
 	emrun $(DIST_DIR)/$(DIST).html
+
+format:
+	clang-format -i -style=$(CLANG_FORMAT_STYLE) src/**/*.cpp src/**/*.hpp
 
 bear: clean
 	bear -- make all
