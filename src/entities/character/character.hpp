@@ -1,8 +1,9 @@
 #pragma once
 
-#include "SDL_render.h"
 #include <mover/mover.hpp>
 #include <string>
+
+#include "SDL_render.h"
 
 namespace wbz {
 namespace entities {
@@ -16,7 +17,13 @@ public:
 
   void set_name(const std::string &name) { _name = name; }
 
-  void update(double delta_time) { _mover.update(delta_time); }
+  void update(double delta_time) {
+    Vector2f friction_force =
+        _mover.velocity().mul(-1.0f).normalized().mul(800.f);
+    _mover.add_force(friction_force);
+
+    _mover.update(delta_time);
+  }
 
   void render(SDL_Renderer *renderer) const {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

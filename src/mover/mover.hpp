@@ -23,26 +23,6 @@ public:
     _velocity = _velocity.add(_acceleration.mul(delta_time));
     _position = _position.add(_velocity.mul(delta_time));
     _acceleration = Vector2f::zero();
-
-    // Bouncing on the walls
-    if (_position.x < 0) {
-      _position.x = 0;
-      _velocity.x = -_velocity.x;
-    }
-    if (_position.x >= 800 - (_mass * 5.0f)) {
-      _position.x = 800 - (_mass * 5.0f);
-      _velocity.x = -_velocity.x;
-    }
-
-    /*     if (_position.y < 0) { */
-    /*       _position.y = 0; */
-    /*       _velocity.y = -_velocity.y; */
-    /*     } */
-
-    if (_position.y >= 600 - (_mass * 5.0f)) {
-      _position.y = 600 - (_mass * 5.0f);
-      _velocity.y = -_velocity.y;
-    }
   }
 
 private:
