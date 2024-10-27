@@ -73,3 +73,5 @@ Temporary Items
 bin/
 obj/
 dist/
+.cache/
+*compile_commands.json
