@@ -1,8 +1,9 @@
 #pragma once
 
-#include "SDL_events.h"
 #include <cstdint>
 #include <unordered_map>
+
+#include "SDL_events.h"
 
 namespace wbz {
 

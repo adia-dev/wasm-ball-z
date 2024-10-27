@@ -1,8 +1,9 @@
 #pragma once
 
+#include <state/game_state.hpp>
+
 #include "SDL_keycode.h"
 #include "managers/input_manager/input_manager.hpp"
-#include <state/game_state.hpp>
 
 namespace wbz {
 namespace managers {
