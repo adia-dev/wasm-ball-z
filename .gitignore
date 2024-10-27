@@ -75,3 +75,5 @@ obj/
 dist/
 .cache/
 *compile_commands.json
+
+*.null-ls*

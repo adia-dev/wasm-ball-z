@@ -19,7 +19,7 @@ DIST := app
 
 DIST_EXTENSION := html
 
-SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+SRC_FILES := $(shell find $(SRC_DIR) -type f -name '*.cpp')
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 .PHONY := all clean bear

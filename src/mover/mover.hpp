@@ -2,6 +2,7 @@
 
 #include <math/vector2.hpp>
 
+namespace wbz {
 class Mover {
 public:
   explicit Mover(float mass) : _mass(mass) {}
@@ -11,6 +12,7 @@ public:
   const Vector2f &position() const { return _position; }
   const Vector2f &velocity() const { return _velocity; }
 
+  void set_mass(float mass) { _mass = mass; }
   const float &mass() const { return _mass; }
 
   void add_force(const Vector2f &force) {
@@ -47,3 +49,4 @@ private:
   float _mass;
   Vector2f _acceleration, _velocity, _position;
 };
+} // namespace wbz
