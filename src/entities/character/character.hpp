@@ -1,3 +1,5 @@
+#pragma once
+
 #include "SDL_render.h"
 #include <mover/mover.hpp>
 #include <string>
@@ -6,7 +8,7 @@ namespace wbz {
 namespace entities {
 class Character {
 public:
-  Character() : _mover(10.0f), _name("<unnamed>") {}
+  Character() : _mover(1000.0f), _name("<unnamed>") {}
   explicit Character(const std::string &name) : _mover(10.0f), _name(name) {}
 
   const std::string &name() const { return _name; }
@@ -14,7 +16,7 @@ public:
 
   void set_name(const std::string &name) { _name = name; }
 
-  void update(double delta_time) {}
+  void update(double delta_time) { _mover.update(delta_time); }
 
   void render(SDL_Renderer *renderer) const {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

@@ -1,5 +1,12 @@
 #include "application.hpp"
 
+#include <iostream>
+#include <managers/input_manager/input_manager.hpp>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 namespace wbz {
 
 void Application::run() {
@@ -18,6 +25,7 @@ void Application::run() {
 
   app.cleanup();
 }
+
 void Application::single_iter(void) {
   auto &app = instance();
   app.handle_events();
@@ -33,14 +41,11 @@ void Application::init() {
   std::cout << "Initializing the application instance\n";
   _window = Window::from_config(_config.window_config());
 
-  init_characters();
+  _last_time = SDL_GetPerformanceCounter();
+
+  _game_manager.init();
 
   std::cout << "Successfully initialized the application instance\n";
-}
-
-void Application::init_characters() {
-  _characters[0].set_name("adia-dev");
-  /* _characters[1].set_name("faia-panchi"); */
 }
 
 void Application::handle_events() {
@@ -55,23 +60,41 @@ void Application::handle_events() {
       case SDLK_ESCAPE:
         _is_playing = false;
         break;
+      case SDLK_p:
+        toggle_pause();
+        break;
       }
       break;
     }
+
+    managers::InputManager::handle_events(e);
   }
 }
 
 void Application::update() {
-  for (entities::Character &character : _characters) {
-    character.update(0.0f);
+  _current_time = SDL_GetPerformanceCounter();
+  _delta_time = (_current_time - _last_time) /
+                static_cast<double>(SDL_GetPerformanceFrequency());
+  _last_time = _current_time;
+
+  if (_is_paused) {
+    return;
   }
+
+  for (auto &character : _game_state.characters) {
+    character.update(_delta_time);
+  }
+
+  _game_manager.update();
+
+  managers::InputManager::update();
 }
 
 void Application::render() {
   SDL_SetRenderDrawColor(_window.renderer(), 0, 0, 0, 255);
   SDL_RenderClear(_window.renderer());
 
-  for (entities::Character &character : _characters) {
+  for (const auto &character : _game_state.characters) {
     character.render(_window.renderer());
   }
 
@@ -80,14 +103,21 @@ void Application::render() {
 
 void Application::cleanup() {
   std::cout << "Cleaning up the application instance\n";
-  SDL_DestroyRenderer(_window.renderer());
-  SDL_DestroyWindow(_window.window());
+
+  _window.cleanup();
+  _game_manager.cleanup();
+
   SDL_Quit();
+
+  std::cout << "Successfully cleaned up the application instance\n";
 
 #ifdef __EMSCRIPTEN__
   emscripten_cancel_main_loop();
 #endif
+}
 
-  std::cout << "Successfully cleaned up the application instance\n";
+void Application::toggle_pause() {
+  _is_paused = !_is_paused;
+  std::cout << "Game " << (_is_paused ? "paused" : "resumed") << std::endl;
 }
 } // namespace wbz

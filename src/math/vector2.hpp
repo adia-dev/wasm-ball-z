@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <ostream>
 
 template <typename T> struct Vector2 {
   Vector2() : x(T()), y(T()) {}
@@ -45,6 +46,11 @@ template <typename T> struct Vector2 {
   }
 
   static Vector2<T> zero() { return Vector2<T>((T)0, (T)0); }
+
+  friend std::ostream &operator<<(std::ostream &os, const Vector2 &v) {
+    os << "(" << v.x << ", " << v.y << ")";
+    return os;
+  }
 };
 
 typedef Vector2<float> Vector2f;
