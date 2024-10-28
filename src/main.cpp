@@ -6,7 +6,8 @@ int main(int argc, char *argv[]) {
   try {
     wbz::Application::run();
   } catch (...) {
-    std::cerr << "Application closed with an exception\n";
+    wbz::Application::shutdown();
+    std::cerr << "Application shutdown with an exception\n";
   }
   return 0;
 }

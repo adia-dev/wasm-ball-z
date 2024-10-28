@@ -80,6 +80,9 @@ public:
 private:
   InputManager() = default;
   std::unordered_map<uint16_t, InputState> _key_states;
+
+  InputManager(const InputManager &) = delete;
+  InputManager &operator=(const InputManager &) = delete;
 };
 } // namespace managers
 } // namespace wbz

@@ -9,6 +9,7 @@ public:
   Application() : _game_manager(_game_state) {}
 
   static void run();
+  static void shutdown();
   static void single_iter(void);
   static Application &instance() {
     static Application application;

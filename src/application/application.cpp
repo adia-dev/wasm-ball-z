@@ -1,7 +1,9 @@
 #include "application.hpp"
+#include "SDL_render.h"
 
 #include <iostream>
 #include <managers/input_manager/input_manager.hpp>
+#include <managers/resource_manager/resource_manager.hpp>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -23,6 +25,11 @@ void Application::run() {
     app.render();
   }
 
+  app.cleanup();
+}
+
+void Application::shutdown() {
+  auto &app = instance();
   app.cleanup();
 }
 
@@ -97,6 +104,14 @@ void Application::render() {
   for (const auto &character : _game_state.characters) {
     character.render(_window.renderer());
   }
+
+  SDL_Rect src_rect{0, 0, 1280, 720};
+  SDL_Rect dst_rect{0, 0, 500, 500};
+
+  SDL_RenderCopy(_window.renderer(),
+                 managers::ResourceManager::get_texture(
+                     _window.renderer(), "Dragon-Ball-Z-Janemba.jpeg"),
+                 &src_rect, &dst_rect);
 
   SDL_RenderPresent(_window.renderer());
 }
