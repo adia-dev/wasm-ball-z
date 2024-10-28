@@ -26,23 +26,23 @@ public:
     return instance;
   }
 
-  static SDL_Texture *get_texture(SDL_Renderer *renderer,
-                                  const fs::path &file_path,
-                                  PathPolicy policy = PathPolicy::RELATIVE) {
+  static std::shared_ptr<SDL_Texture>
+  get_texture(SDL_Renderer *renderer, const fs::path &file_path,
+              PathPolicy policy = PathPolicy::RELATIVE) {
 
     auto &resource_manager = instance();
 
     fs::path adjusted_file_path =
         policy == PathPolicy::ABSOLUTE
             ? file_path
-            : fs::path(utils::R::textures() + "/" + file_path.c_str());
+            : fs::path(utils::R::textures() + "/" + file_path.string());
 
     auto found_texture =
         resource_manager._textures.find(adjusted_file_path.string());
     if (found_texture != resource_manager._textures.end()) {
       /* std::cout << "Texture found in cache: " << adjusted_file_path << "\n";
        */
-      return found_texture->second.get();
+      return found_texture->second;
     }
 
     if (!fs::exists(adjusted_file_path)) {
@@ -70,12 +70,9 @@ public:
 
     resource_manager._textures.emplace(
         adjusted_file_path.string(),
-        std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>(
-            texture, SDL_DestroyTexture));
+        std::shared_ptr<SDL_Texture>(texture, SDL_DestroyTexture));
 
-    std::cout << "Successfully loaded and cached texture: "
-              << adjusted_file_path << "\n";
-    return texture;
+    return resource_manager._textures[adjusted_file_path.string()];
   }
 
 private:
@@ -92,9 +89,7 @@ private:
   ResourceManager(const ResourceManager &) = delete;
   ResourceManager &operator=(const ResourceManager &) = delete;
 
-  std::unordered_map<
-      std::string, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>>
-      _textures;
+  std::unordered_map<std::string, std::shared_ptr<SDL_Texture>> _textures;
 };
 
 } // namespace managers

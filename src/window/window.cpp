@@ -13,9 +13,11 @@ wbz::Window wbz::Window::from_config(const WindowConfig &window_config) {
         "Failed to initialize SDL with `SDL_INIT_VIDEO` flags.");
   }
 
-  new_window._window.reset(SDL_CreateWindow(
-      window_config.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-      window_config.width, window_config.height, window_config.flags));
+  new_window._window.reset(
+      SDL_CreateWindow(window_config.title, SDL_WINDOWPOS_UNDEFINED,
+                       SDL_WINDOWPOS_UNDEFINED, window_config.width,
+                       window_config.height, window_config.flags),
+      SDL_DestroyWindow);
 
   if (!new_window._window) {
     std::cerr << "Failed to create the SDL2 Window; Error = " << SDL_GetError()
@@ -26,7 +28,8 @@ wbz::Window wbz::Window::from_config(const WindowConfig &window_config) {
 
   new_window._renderer.reset(
       SDL_CreateRenderer(new_window._window.get(), -1,
-                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
+      SDL_DestroyRenderer);
 
   if (!new_window._renderer) {
     std::cerr << "Failed to create the SDL2 Renderer; Error = "

@@ -98,22 +98,23 @@ void Application::update() {
 }
 
 void Application::render() {
-  SDL_SetRenderDrawColor(_window.renderer(), 0, 0, 0, 255);
-  SDL_RenderClear(_window.renderer());
+  SDL_SetRenderDrawColor(_window.renderer().get(), 0, 0, 0, 255);
+  SDL_RenderClear(_window.renderer().get());
 
   for (const auto &character : _game_state.characters) {
-    character.render(_window.renderer());
+    character.render(_window.renderer().get());
   }
 
   SDL_Rect src_rect{0, 0, 1280, 720};
   SDL_Rect dst_rect{0, 0, 500, 500};
 
-  SDL_RenderCopy(_window.renderer(),
+  SDL_RenderCopy(_window.renderer().get(),
                  managers::ResourceManager::get_texture(
-                     _window.renderer(), "Dragon-Ball-Z-Janemba.jpeg"),
+                     _window.renderer().get(), "Dragon-Ball-Z-Janemba.jpeg")
+                     .get(),
                  &src_rect, &dst_rect);
 
-  SDL_RenderPresent(_window.renderer());
+  SDL_RenderPresent(_window.renderer().get());
 }
 
 void Application::cleanup() {

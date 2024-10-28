@@ -10,15 +10,13 @@ class Window {
 public:
   static Window from_config(const WindowConfig &window_config);
 
-  SDL_Window *window() { return _window.get(); }
-  SDL_Renderer *renderer() { return _renderer.get(); }
+  std::shared_ptr<SDL_Window> window() { return _window; }
+  std::shared_ptr<SDL_Renderer> renderer() { return _renderer; }
 
   void cleanup();
 
 private:
-  std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> _window = {
-      nullptr, SDL_DestroyWindow};
-  std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> _renderer = {
-      nullptr, SDL_DestroyRenderer};
+  std::shared_ptr<SDL_Window> _window{nullptr, SDL_DestroyWindow};
+  std::shared_ptr<SDL_Renderer> _renderer{nullptr, SDL_DestroyRenderer};
 };
 } // namespace wbz
