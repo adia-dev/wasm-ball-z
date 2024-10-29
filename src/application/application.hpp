@@ -1,3 +1,5 @@
+#pragma once
+
 #include <config/config.hpp>
 #include <managers/game_manager/game_manager.hpp>
 #include <state/game_state.hpp>

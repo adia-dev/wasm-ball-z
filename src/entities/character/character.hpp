@@ -1,33 +1,25 @@
 #pragma once
 
+#include <entities/entity.hpp>
 #include <mover/mover.hpp>
-#include <string>
+#include <sprite/sprite.hpp>
 
 #include "SDL_render.h"
 
 namespace wbz {
 namespace entities {
-class Character {
+class Character : public Entity {
 public:
-  Character();
-  explicit Character(const std::string &name);
+  explicit Character(const Sprite &sprite) : _sprite(sprite) {}
 
-  const std::string &name() const;
   Mover &mover();
 
-  void set_width(int width);
-  void set_height(int height);
-  void set_name(const std::string &name);
-
-  void update(double delta_time);
-  void render(SDL_Renderer *renderer) const;
-
-  const SDL_Rect &rect() const;
+  void update(double delta_time) override;
+  void render(SDL_Renderer *renderer) const override;
 
 private:
   Mover _mover;
-  SDL_Rect _rect;
-  std::string _name;
+  Sprite _sprite;
 };
 } // namespace entities
 } // namespace wbz
