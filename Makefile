@@ -43,8 +43,8 @@ BIN := app
 DIST := app
 DIST_EXTENSION := html
 
-# Source and object files
-SRC_FILES := $(shell find $(SRC_DIR) -type f -name '*.cpp')
+# Source and object files (ignore files starting with .null-ls)
+SRC_FILES := $(shell find $(SRC_DIR) -type f -name '*.cpp' -not -name '.null-ls*')
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 # Code formatting style
