@@ -27,7 +27,6 @@ EMCCFLAGS := -sUSE_SDL=2 \
              -DRESOURCE_DIR=\"/assets\" \
              --preload-file $(RESOURCE_DIR)@/assets \
              -sSDL2_IMAGE_FORMATS='["png", "jpg"]' \
-             -sNO_EXIT_RUNTIME=1 \
              -sINITIAL_MEMORY=$(EMCC_INITIAL_MEMORY) \
              -sTOTAL_MEMORY=$(EMCC_TOTAL_MEMORY) \
              -sALLOW_MEMORY_GROWTH=$(EMCC_ALLOW_MEMORY_GROWTH)
