@@ -34,11 +34,30 @@ void GameManager::init() {
   computer.mover().set_position(Vector2f(740.0f, 400.0f));
   computer.set_width(20);
   computer.set_height(40);
+  computer.animator().add_animation(
+      "jump", {
+                  .delay = 100,
+                  .frames =
+                      {
+                          {.x = 262, .y = 617, .w = 49, .h = 42},
+                          {.x = 332, .y = 575, .w = 28, .h = 58},
+                          {.x = 381, .y = 559, .w = 46, .h = 46},
+                          {.x = 442, .y = 583, .w = 43, .h = 55},
+                          {.x = 502, .y = 617, .w = 49, .h = 42},
+                      },
+              });
+  computer.animator().play("jump");
   _game_state.entities.push_back(
       std::make_shared<entities::Character>(std::move(computer)));
 
   _game_state.player_character =
       std::dynamic_pointer_cast<entities::Character>(_game_state.entities[0]);
+
+  std::dynamic_pointer_cast<entities::Character>(_game_state.entities[0])
+      ->stare_at(&std::dynamic_pointer_cast<entities::Character>(
+                      _game_state.entities[1])
+                      ->mover()
+                      .position());
 }
 void GameManager::update() {
   if (InputManager::is_key_down(SDLK_LEFT) ||

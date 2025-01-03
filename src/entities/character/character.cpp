@@ -1,4 +1,5 @@
 #include "character.hpp"
+#include "math/vector2.hpp"
 
 namespace wbz {
 namespace entities {
@@ -27,13 +28,18 @@ void Character::update(double delta_time) {
                        static_cast<int>(adjusted_y));
 
   _animator.update(delta_time);
+
+  if (_staring_at != nullptr) {
+    _is_looking_right = (_staring_at->x - _mover.position().x) < 0;
+  }
 }
 
 void Character::render(SDL_Renderer *renderer) const {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-  _sprite.render(renderer);
+  _sprite.render(renderer, !_is_looking_right);
 }
 Animator &Character::animator() { return _animator; }
+void Character::stare_at(const Vector2f *target) { _staring_at = target; }
 } // namespace entities
 } // namespace wbz
