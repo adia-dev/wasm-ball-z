@@ -18,7 +18,15 @@ void Character::update(double delta_time) {
     _mover.set_position({static_cast<float>(_rect.w + 1), _mover.position().y});
   }
 
-  _sprite.set_position(_mover.position().x, _mover.position().y);
+  // Update frame and position
+  _sprite.set_frame(_animator.frame());
+  SDL_Rect current_frame = _animator.frame();
+  float adjusted_x = _mover.position().x - current_frame.w / 2.0f;
+  float adjusted_y = _mover.position().y - current_frame.h / 2.0f;
+  _sprite.set_position(static_cast<int>(adjusted_x),
+                       static_cast<int>(adjusted_y));
+
+  _animator.update(delta_time);
 }
 
 void Character::render(SDL_Renderer *renderer) const {
@@ -26,5 +34,6 @@ void Character::render(SDL_Renderer *renderer) const {
 
   _sprite.render(renderer);
 }
+Animator &Character::animator() { return _animator; }
 } // namespace entities
 } // namespace wbz

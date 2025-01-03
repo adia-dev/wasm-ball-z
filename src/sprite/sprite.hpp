@@ -1,3 +1,5 @@
+#pragma once
+
 #include "SDL_render.h"
 #include <SDL_rect.h>
 #include <string>
@@ -10,10 +12,8 @@ public:
          const SDL_Rect &dst_rect);
   void render(SDL_Renderer *renderer) const;
 
-  void set_position(int x, int y) {
-    _dst_rect.x = x;
-    _dst_rect.y = y;
-  }
+  void set_frame(const SDL_Rect &frame);
+  void set_position(int x, int y);
 
 private:
   std::string _texture_id;

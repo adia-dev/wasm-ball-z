@@ -7,6 +7,7 @@ namespace entities {
 
 class Entity {
 public:
+  virtual ~Entity() {}
   void set_width(int width) { _rect.w = width; }
   void set_height(int height) { _rect.h = height; }
 

@@ -13,6 +13,19 @@ void GameManager::init() {
   player.set_width(30);
   player.set_height(60);
   player.mover().set_position(Vector2f(50.0f, 400.0f));
+  player.animator().add_animation(
+      "jump", {
+                  .delay = 100,
+                  .frames =
+                      {
+                          {.x = 262, .y = 617, .w = 49, .h = 42},
+                          {.x = 332, .y = 575, .w = 28, .h = 58},
+                          {.x = 381, .y = 559, .w = 46, .h = 46},
+                          {.x = 442, .y = 583, .w = 43, .h = 55},
+                          {.x = 502, .y = 617, .w = 49, .h = 42},
+                      },
+              });
+  player.animator().play("jump");
   _game_state.entities.push_back(
       std::make_shared<entities::Character>(std::move(player)));
 
