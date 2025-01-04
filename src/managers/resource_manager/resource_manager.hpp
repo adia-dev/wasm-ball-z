@@ -37,7 +37,7 @@ public:
     fs::path adjusted_file_path =
         policy == PathPolicy::ABSOLUTE
             ? file_path
-            : fs::path(utils::R::textures() + "/" + file_path.string());
+            : fs::path(utils::R::textures() + file_path.string());
 
     auto found_texture =
         resource_manager._textures.find(adjusted_file_path.string());

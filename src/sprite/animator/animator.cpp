@@ -1,7 +1,11 @@
 #include "animator.hpp"
+#include "tinyxml/tinyxml2.h"
 #include <iostream>
 
 namespace wbz {
+
+using namespace tinyxml2;
+
 Animator::Animator() { play(); }
 
 Animator::~Animator() {}
@@ -77,8 +81,60 @@ void Animator::reset_animation() {
   _timer = 0.0;
 }
 
-void Animator::load_animations() {
-  // TODO
-}
+void Animator::load_animations(const std::string &file_path) {
+  XMLDocument doc;
+  if (doc.LoadFile(file_path.c_str()) != XML_SUCCESS) {
+    throw std::runtime_error("Failed to load animation XML file: " + file_path);
+  }
 
+  XMLElement *root = doc.FirstChildElement("sprites");
+  if (!root) {
+    throw std::runtime_error(
+        "Invalid XML format: Missing <sprites> root element");
+  }
+
+  const char *image = root->Attribute("image");
+  if (!image) {
+    throw std::runtime_error("Missing 'image' attribute in <sprites>");
+  }
+
+  XMLElement *animation_element = root->FirstChildElement("animation");
+  while (animation_element) {
+    const char *title = animation_element->Attribute("title");
+    if (!title) {
+      throw std::runtime_error("Missing 'title' attribute in <animation>");
+    }
+
+    int delay = 0;
+    animation_element->QueryIntAttribute("delay", &delay);
+
+    Animation animation;
+    animation.delay = static_cast<float>(delay);
+
+    XMLElement *cut_element = animation_element->FirstChildElement("cut");
+    while (cut_element) {
+      int x, y, w, h;
+      if (cut_element->QueryIntAttribute("x", &x) != XML_SUCCESS ||
+          cut_element->QueryIntAttribute("y", &y) != XML_SUCCESS ||
+          cut_element->QueryIntAttribute("w", &w) != XML_SUCCESS ||
+          cut_element->QueryIntAttribute("h", &h) != XML_SUCCESS) {
+        throw std::runtime_error("Invalid or missing attributes in <cut>");
+      }
+
+      SDL_Rect frame = {x, y, w, h};
+      animation.frames.push_back(frame);
+
+      cut_element = cut_element->NextSiblingElement("cut");
+    }
+
+    if (animation.frames.empty()) {
+      throw std::runtime_error("Animation " + std::string(title) +
+                               " has no frames");
+    }
+
+    add_animation(title, animation);
+
+    animation_element = animation_element->NextSiblingElement("animation");
+  }
+}
 } // namespace wbz

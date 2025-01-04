@@ -21,7 +21,7 @@ public:
   ~Animator();
 
   void add_animation(const std::string &name, Animation animation);
-  void load_animations();
+  void load_animations(const std::string &file_path);
 
   void play();
   void play(const std::string &name);
