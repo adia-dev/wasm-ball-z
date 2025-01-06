@@ -91,6 +91,7 @@ void Application::update() {
   for (auto &entity : _game_state.entities) {
     entity->update(_delta_time);
   }
+  _game_state.map.update(_delta_time);
 
   _game_manager.update();
 
@@ -100,6 +101,8 @@ void Application::update() {
 void Application::render() {
   SDL_SetRenderDrawColor(_window.renderer().get(), 0, 0, 0, 255);
   SDL_RenderClear(_window.renderer().get());
+
+  _game_state.map.render(_window.renderer().get());
 
   for (const auto &entity : _game_state.entities) {
     entity->render(_window.renderer().get());

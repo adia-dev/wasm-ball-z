@@ -21,8 +21,10 @@ void GameManager::init() {
   _game_state.entities.push_back(
       std::make_shared<entities::Character>(std::move(player)));
 
-  Sprite computer_sprite("janemba.png", {64, 2271, 64, 64}, {0, 0, 64, 64});
+  Sprite computer_sprite("goku_ssjb.png", {64, 2271, 64, 64}, {0, 0, 64, 64});
   entities::Character computer(computer_sprite);
+  computer.animator().load_animations(utils::R::animations() + "goku_ssjb.xml");
+  computer.animator().play("Idle");
   computer.mover().set_position(Vector2f(740.0f, 400.0f));
 
   _game_state.entities.push_back(
@@ -36,6 +38,9 @@ void GameManager::init() {
                       _game_state.entities[1])
                       ->mover()
                       .position());
+
+  _game_state.map.set_map_file("map.png");
+  _game_state.map.set_map_rect({0, 3 * (1805 / 6), 1200, 1805 / 6});
 }
 void GameManager::update() {
   _game_state.player_character->animator().play("Idle");

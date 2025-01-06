@@ -39,7 +39,9 @@ void Character::render(SDL_Renderer *renderer) const {
 
   _sprite.render(renderer, !_is_looking_right);
 }
+
 Animator &Character::animator() { return _animator; }
+
 void Character::stare_at(const Vector2f *target) { _staring_at = target; }
 } // namespace entities
 } // namespace wbz
