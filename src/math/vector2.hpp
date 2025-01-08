@@ -28,21 +28,39 @@ template <typename T> struct Vector2 {
     return Vector2<T>(this->x / (T)rhs.x, this->y / (T)rhs.y);
   }
 
+  // Add a squared magnitude function for performance and avoiding square root
+  // when possible
+  double mag_squared() const {
+    double x_squared =
+        static_cast<double>(this->x) * static_cast<double>(this->x);
+    double y_squared =
+        static_cast<double>(this->y) * static_cast<double>(this->y);
+    return x_squared + y_squared;
+  }
+
   template <typename K> Vector2<T> div(K scalar) const {
+    // Add protection against division by zero
+    if (std::abs(scalar) < 0.0001) {
+      return Vector2<T>::zero();
+    }
     return Vector2<T>(this->x / (T)scalar, this->y / (T)scalar);
   }
 
   Vector2<T> normalized() const {
     double magnitude = this->mag();
-    if (magnitude == 0) {
+    // Add protection against division by zero
+    if (magnitude < 0.0001) { // Small epsilon value instead of exact zero
       return Vector2<T>::zero();
     }
-
     return this->div(magnitude);
   }
 
   double mag() const {
-    return std::sqrt((double)(this->x * this->x + this->y * this->y));
+    double x_squared =
+        static_cast<double>(this->x) * static_cast<double>(this->x);
+    double y_squared =
+        static_cast<double>(this->y) * static_cast<double>(this->y);
+    return std::sqrt(x_squared + y_squared);
   }
 
   static Vector2<T> zero() { return Vector2<T>((T)0, (T)0); }
