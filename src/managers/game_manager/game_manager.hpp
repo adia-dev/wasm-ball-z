@@ -17,7 +17,6 @@ public:
 private:
   GameState &_game_state;
 
-  // New helper methods for handling different aspects of the game
   void handle_movement_input(std::shared_ptr<entities::Character> player);
   void handle_combat_input(std::shared_ptr<entities::Character> player);
   void update_cpu_behavior(std::shared_ptr<entities::Character> cpu,

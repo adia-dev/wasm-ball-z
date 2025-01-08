@@ -11,7 +11,6 @@
 namespace wbz {
 namespace entities {
 
-// Extended combat states for more precise control
 enum class CombatState {
   IDLE,
   WALKING,
@@ -21,10 +20,9 @@ enum class CombatState {
   JUMPING,
   CROUCHING,
   DASHING,
-  RECOVERY // New state for post-attack recovery
+  RECOVERY
 };
 
-// Combat stats for different character types
 struct CombatStats {
   int max_health;
   int max_stamina;
@@ -42,7 +40,6 @@ struct CombatStats {
         attack_speed_modifier(atk_speed) {}
 };
 
-// Extended attack system
 struct Attack {
   std::string name;
   int damage;
@@ -54,8 +51,8 @@ struct Attack {
   int stamina_cost;
   bool can_be_canceled;
   std::string animation_name;
-  Vector2f hit_box_size;   // Size of the attack's hit box
-  Vector2f hit_box_offset; // Offset from character center
+  Vector2f hit_box_size;
+  Vector2f hit_box_offset;
 
   Attack(const std::string &n = "", int dmg = 10, float rng = 50.0f,
          float startup = 5.0f, float active = 3.0f, float recovery = 10.0f,
@@ -70,7 +67,6 @@ struct Attack {
         hit_box_size(box_size), hit_box_offset(box_offset) {}
 };
 
-// Hitbox component for precise collision detection
 struct HitBox {
   Vector2f size;
   Vector2f offset;
@@ -81,7 +77,6 @@ struct HitBox {
       : size(s), offset(o), is_active(true) {}
 };
 
-// Character state structure
 struct CharacterState {
   int health;
   int max_health;
@@ -130,86 +125,75 @@ public:
   explicit Character(const Sprite &sprite,
                      const CombatStats &stats = CombatStats());
 
-  // Main systems
   Mover &mover() { return _mover; }
   const Mover &mover() const { return _mover; }
 
-  // State accessors
   CharacterState &state() { return _state; }
   const CharacterState &state() const { return _state; }
 
   Animator &animator() { return _animator; }
 
-  // Combat state management
+  void reset();
+  void apply_damage(int raw_damage);
+
   void set_combat_state(CombatState new_state);
   CombatState get_combat_state() const { return _current_combat_state; }
 
-  // Attack system
   bool perform_attack(const std::string &attack_name);
   bool is_hit_connecting(const Character &other, const Attack &attack) const;
   void apply_hit(const Attack &attack, const Vector2f &attacker_pos);
 
-  // Movement and collision
   void apply_knockback(const Vector2f &direction, float force);
   bool is_colliding_with(const Character &other) const;
 
-  // State queries
   bool can_attack() const;
   bool can_block() const;
   bool is_stunned() const;
   bool is_in_recovery() const;
   bool is_vulnerable() const;
 
-  // Combat mechanic getters
   float get_attack_multiplier() const;
   float get_defense_multiplier() const;
   int get_combo_count() const { return _combo_counter; }
 
-  // Base class overrides
   void update(double delta_time) override;
   void render(SDL_Renderer *renderer) const override;
 
-  // Direction and targeting
   void stare_at(const Vector2f *target);
   bool is_facing_right() const { return _is_looking_right; }
 
-  // Hit detection
   bool check_hit_box_collision(const HitBox &attack_box,
                                const Character &defender) const;
 
+protected:
+  virtual void handle_defeat();
+
 private:
-  // Core components
   Mover _mover;
   Sprite _sprite;
   Animator _animator;
 
-  // Combat state
   CombatStats _stats;
   int _current_health;
   int _current_stamina;
   CombatState _current_combat_state;
   CharacterState _state;
 
-  // Combat timers and counters
   float _state_timer;
   float _invulnerability_timer;
   float _recovery_timer;
   int _combo_counter;
-  std::queue<float> _recent_hit_times; // For combo timing
+  std::queue<float> _recent_hit_times;
 
-  // Directional state
   const Vector2f *_staring_at;
   bool _is_looking_right;
 
-  // Combat data
   std::unordered_map<std::string, Attack> _attacks;
-  HitBox _hurt_box;        // Area where character can be hit
-  HitBox _current_hit_box; // Current attack's hit area
+  HitBox _hurt_box;
+  HitBox _current_hit_box;
 
-  // Add to Character class private members
   mutable std::vector<FloatingText> _floating_texts;
 
-  // Helper methods
   void update_combat_state(double delta_time);
   void update_timers(double delta_time);
   void update_combos(double delta_time);

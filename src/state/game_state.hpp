@@ -8,9 +8,34 @@
 
 namespace wbz {
 
-// Additional state for tracking combat
+struct EpisodeState {
+  int episode_number;
+  float episode_timer;
+  float total_episode_time;
+  int hits_landed;
+  int hits_taken;
+  float average_distance;
+  float total_damage_dealt;
+  float total_damage_taken;
+
+  EpisodeState()
+      : episode_number(0), episode_timer(0), total_episode_time(0),
+        hits_landed(0), hits_taken(0), average_distance(0),
+        total_damage_dealt(0), total_damage_taken(0) {}
+
+  void reset() {
+    episode_timer = 0;
+    total_episode_time = 0;
+    hits_landed = 0;
+    hits_taken = 0;
+    average_distance = 0;
+    total_damage_dealt = 0;
+    total_damage_taken = 0;
+  }
+};
+
 struct CombatRoundState {
-  float round_timer = 99.0f; // Traditional fighting game countdown
+  float round_timer = 99.0f;
   int round_number = 1;
   int max_rounds = 3;
   int player_rounds_won = 0;
@@ -19,26 +44,46 @@ struct CombatRoundState {
 };
 
 struct GameState {
-  // Core game elements
+
   Map map;
   std::vector<std::shared_ptr<entities::Entity>> entities;
   std::shared_ptr<entities::Character> player_character = nullptr;
 
-  // Combat specific state
   CombatRoundState combat_state;
+  EpisodeState episode_state;
 
-  // Round management
+  void reset_episode() {
+    episode_state.episode_number++;
+    episode_state.reset();
+
+    // Reset character positions and health
+    if (player_character) {
+      player_character->reset();
+      player_character->mover().set_position(Vector2f(200.0f, 400.0f));
+    }
+
+    if (entities.size() > 1) {
+      auto opponent =
+          std::dynamic_pointer_cast<entities::Character>(entities[1]);
+      if (opponent) {
+        opponent->reset();
+        opponent->mover().set_position(Vector2f(600.0f, 400.0f));
+      }
+    }
+
+    combat_state.round_timer = 99.0f;
+    combat_state.round_in_progress = true;
+  }
+
   void start_new_round() {
     combat_state.round_timer = 99.0f;
     combat_state.round_in_progress = true;
 
-    // Reset character positions and states
     if (player_character) {
       player_character->mover().set_position(Vector2f(200.0f, 400.0f));
       player_character->state().heal(player_character->state().max_health);
     }
 
-    // Reset opponent if it exists (assuming it's the second entity)
     if (entities.size() > 1) {
       auto opponent =
           std::dynamic_pointer_cast<entities::Character>(entities[1]);
@@ -54,16 +99,13 @@ struct GameState {
       return;
     }
 
-    // Update timer
     combat_state.round_timer -= delta_time;
 
-    // Check for round end conditions
     bool round_ended = false;
 
-    // Time out
     if (combat_state.round_timer <= 0.0f) {
       round_ended = true;
-      // Determine winner based on remaining health percentage
+
       if (player_character && entities.size() > 1) {
         auto opponent =
             std::dynamic_pointer_cast<entities::Character>(entities[1]);
@@ -80,12 +122,10 @@ struct GameState {
           } else if (opponent_health_percent > player_health_percent) {
             combat_state.opponent_rounds_won++;
           }
-          // In case of exact tie, both get a point
         }
       }
     }
 
-    // KO
     if (player_character && !player_character->state().is_alive()) {
       round_ended = true;
       combat_state.opponent_rounds_won++;
@@ -98,17 +138,15 @@ struct GameState {
       }
     }
 
-    // Handle round end
     if (round_ended) {
       combat_state.round_in_progress = false;
       combat_state.round_number++;
 
-      // Check if match is over
       if (combat_state.round_number <= combat_state.max_rounds &&
           combat_state.player_rounds_won < (combat_state.max_rounds / 2 + 1) &&
           combat_state.opponent_rounds_won <
               (combat_state.max_rounds / 2 + 1)) {
-        // Start next round after a delay (handled in game manager)
+
         start_new_round();
       }
     }

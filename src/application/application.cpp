@@ -70,45 +70,108 @@ void Application::handle_events() {
       case SDLK_p:
         toggle_pause();
         break;
+
+      case SDLK_h:
+        toggle_headless();
+        break;
       }
       break;
     }
 
-    managers::InputManager::handle_events(e);
+    wbz::managers::InputManager::handle_events(e);
   }
 }
 
 void Application::update() {
-  _current_time = SDL_GetPerformanceCounter();
-  _delta_time = (_current_time - _last_time) /
-                static_cast<double>(SDL_GetPerformanceFrequency());
-  _last_time = _current_time;
+  size_t nIter = _headless ? 100000 : 1;
+  for (size_t i = 0; i < nIter; ++i) {
+    _current_time = SDL_GetPerformanceCounter();
+    _delta_time = (_current_time - _last_time) /
+                  static_cast<double>(SDL_GetPerformanceFrequency());
+    _last_time = _current_time;
 
-  if (_is_paused) {
+    if (_is_paused) {
+      return;
+    }
+
+    update_camera(_delta_time);
+
+    for (auto &entity : _game_state.entities) {
+      entity->update(_delta_time);
+    }
+    _game_state.map.update(_delta_time);
+
+    _game_manager.update(_delta_time);
+    managers::InputManager::update();
+  }
+}
+
+void Application::update_camera(double delta_time) {
+  if (!_game_state.player_character) {
     return;
   }
 
-  for (auto &entity : _game_state.entities) {
-    entity->update(_delta_time);
+  Vector2f playerPos = _game_state.player_character->mover().position();
+  Vector2f aiPos;
+  for (auto &ent : _game_state.entities) {
+    auto c = std::dynamic_pointer_cast<entities::Character>(ent);
+    if (c && c != _game_state.player_character) {
+      aiPos = c->mover().position();
+      break;
+    }
   }
-  _game_state.map.update(_delta_time);
 
-  _game_manager.update(_delta_time);
+  Vector2f midpoint =
+      Vector2f((playerPos.x + aiPos.x) * 0.5f, (playerPos.y + aiPos.y) * 0.5f);
 
-  managers::InputManager::update();
+  float dist = playerPos.sub(aiPos).mag();
+
+  float desired = 1.0f - (dist - 300.0f) / 300.0f;
+  // clamp
+  if (desired < _min_scale)
+    desired = _min_scale;
+  if (desired > _max_scale)
+    desired = _max_scale;
+
+  _camera_target_scale = desired;
+
+  float alpha = 3.0f * static_cast<float>(delta_time);
+  _camera_scale += (_camera_target_scale - _camera_scale) * alpha;
+
+  float screenW = (float)_config.window_config().width;
+  float screenH = (float)_config.window_config().height;
+
+  _camera_x_offset = (screenW * 0.5f) / _camera_scale - midpoint.x;
+  _camera_y_offset = (screenH * 0.5f) / _camera_scale - midpoint.y;
 }
 
 void Application::render() {
-  SDL_SetRenderDrawColor(_window.renderer().get(), 0, 0, 0, 255);
-  SDL_RenderClear(_window.renderer().get());
+  if (_headless)
+    return;
 
-  _game_state.map.render(_window.renderer().get());
+  auto renderer = _window.renderer().get();
 
-  for (const auto &entity : _game_state.entities) {
-    entity->render(_window.renderer().get());
+  // SDL_RenderSetScale(renderer, _camera_scale, _camera_scale);
+
+  // SDL_Rect viewport;
+  // viewport.x = static_cast<int>(_camera_x_offset * _camera_scale);
+  // viewport.y = static_cast<int>(_camera_y_offset * _camera_scale);
+  // viewport.w = _config.window_config().width;
+  // viewport.h = _config.window_config().height;
+  // SDL_RenderSetViewport(renderer, &viewport);
+
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+
+  _game_state.map.render(renderer);
+  for (auto &entity : _game_state.entities) {
+    entity->render(renderer);
   }
 
-  SDL_RenderPresent(_window.renderer().get());
+  SDL_RenderPresent(renderer);
+
+  SDL_RenderSetScale(renderer, 1.0f, 1.0f);
+  SDL_RenderSetViewport(renderer, nullptr);
 }
 
 void Application::cleanup() {

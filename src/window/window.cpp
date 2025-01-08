@@ -26,10 +26,9 @@ wbz::Window wbz::Window::from_config(const WindowConfig &window_config) {
     throw std::runtime_error("Failed to create the SDL2 Window.");
   }
 
-  new_window._renderer.reset(
-      SDL_CreateRenderer(new_window._window.get(), -1,
-                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
-      SDL_DestroyRenderer);
+  new_window._renderer.reset(SDL_CreateRenderer(new_window._window.get(), -1,
+                                                SDL_RENDERER_ACCELERATED),
+                             SDL_DestroyRenderer);
 
   if (!new_window._renderer) {
     std::cerr << "Failed to create the SDL2 Renderer; Error = "

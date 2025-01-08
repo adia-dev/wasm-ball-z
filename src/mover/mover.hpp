@@ -25,29 +25,25 @@ public:
   }
 
   void update(double delta_time) {
-    // Validate delta time
+
     if (delta_time <= 0.0 || std::isnan(delta_time)) {
       return;
     }
 
-    // Protect against NaN acceleration
     if (std::isnan(_acceleration.x) || std::isnan(_acceleration.y)) {
       _acceleration = Vector2f::zero();
     }
 
-    // Apply velocity changes with validation
     Vector2f new_velocity = _velocity.add(_acceleration.mul(delta_time));
     if (!std::isnan(new_velocity.x) && !std::isnan(new_velocity.y)) {
       _velocity = new_velocity;
     }
 
-    // Apply position changes with validation
     Vector2f new_position = _position.add(_velocity.mul(delta_time));
     if (!std::isnan(new_position.x) && !std::isnan(new_position.y)) {
       _position = new_position;
     }
 
-    // Reset acceleration
     _acceleration = Vector2f::zero();
   }
 
