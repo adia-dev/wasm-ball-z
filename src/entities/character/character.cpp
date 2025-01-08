@@ -1,7 +1,10 @@
 #include "character.hpp"
 #include "math/vector2.hpp"
+#include "text/text_renderer.hpp"
+#include "utils/r.hpp"
 #include <SDL2/SDL_ttf.h>
 #include <algorithm>
+#include <iostream>
 
 namespace wbz {
 namespace entities {
@@ -459,23 +462,8 @@ void Character::render_state_info(SDL_Renderer *renderer) const {
 // Helper to render text with SDL_ttf
 void Character::render_text(SDL_Renderer *renderer, const std::string &text,
                             float x, float y, SDL_Color color) const {
-  // Note: In practice, you'd want to cache the font and rendered text textures
-  // This is just for demonstration
-  TTF_Font *font = TTF_OpenFont("path/to/your/font.ttf", 16);
-  if (font) {
-    SDL_Surface *surface = TTF_RenderText_Solid(font, text.c_str(), color);
-    if (surface) {
-      SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-      if (texture) {
-        SDL_Rect dest = {static_cast<int>(x), static_cast<int>(y), surface->w,
-                         surface->h};
-        SDL_RenderCopy(renderer, texture, nullptr, &dest);
-        SDL_DestroyTexture(texture);
-      }
-      SDL_FreeSurface(surface);
-    }
-    TTF_CloseFont(font);
-  }
+  TextRenderer::instance().render_text(renderer, text, static_cast<int>(x),
+                                       static_cast<int>(y), color, 16);
 }
 
 std::string Character::get_state_text() const {
@@ -549,11 +537,30 @@ void Character::stare_at(const Vector2f *target) { _staring_at = target; }
 void Character::add_floating_text(const std::string &text,
                                   const Vector2f &position,
                                   const SDL_Color &color) {
-  Vector2f velocity((std::rand() % 100 - 50) * 0.5f, // Random X spread
-                    -150.0f                          // Upward movement
+  // Create a more dynamic floating text effect
+  float random_angle = (std::rand() % 60 - 30) * 3.14f / 180.0f; // ±30 degrees
+  float speed = 200.0f;
+
+  Vector2f velocity(std::cos(random_angle) * speed,         // Angled movement
+                    std::sin(random_angle) * speed - 300.0f // Upward bias
   );
 
-  _floating_texts.emplace_back(text, position, velocity, 1.0f, color);
+  // Different text sizes based on importance
+  int text_size = 16;
+  if (text.find("CRITICAL") != std::string::npos) {
+    text_size = 24;
+  } else if (text.find("BLOCK") != std::string::npos) {
+    text_size = 20;
+  }
+
+  // Store the text size with the floating text
+  FloatingText ft(text, position, velocity, 1.5f, color);
+  ft.size = text_size;
+  _floating_texts.emplace_back(std::move(ft));
+
+  // Log combat events to console
+  std::cout << "Combat Event: " << text << " at position (" << position.x
+            << ", " << position.y << ")\n";
 }
 
 void Character::update_floating_texts(double delta_time) {
@@ -576,12 +583,30 @@ void Character::update_floating_texts(double delta_time) {
 
 void Character::render_floating_text(SDL_Renderer *renderer) const {
   for (const auto &text : _floating_texts) {
-    // Calculate alpha based on remaining lifetime
-    SDL_Color color = text.color;
-    color.a = static_cast<Uint8>(255 * std::min(1.0f, text.lifetime));
+    // Apply dynamic effects
+    // text.apply_effects();
 
-    // Render the floating text
-    render_text(renderer, text.text, text.position.x, text.position.y, color);
+    // Calculate alpha based on remaining lifetime with smooth fade
+    SDL_Color color = text.color;
+    float fade = std::min(1.0f, text.lifetime);
+    fade = fade * fade; // Quadratic fade for smoother transition
+    color.a = static_cast<Uint8>(255 * fade);
+
+    // Apply scaling and positioning
+    float scaled_x = text.position.x;
+    float scaled_y = text.position.y;
+
+    // Render shadow for better visibility
+    SDL_Color shadow_color = {0, 0, 0, color.a};
+    TextRenderer::instance().render_text(
+        renderer, text.text, static_cast<int>(scaled_x + 2),
+        static_cast<int>(scaled_y + 2), shadow_color,
+        static_cast<int>(text.size));
+
+    // Render main text
+    TextRenderer::instance().render_text(
+        renderer, text.text, static_cast<int>(scaled_x),
+        static_cast<int>(scaled_y), color, static_cast<int>(text.size));
   }
 }
 

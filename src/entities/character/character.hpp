@@ -117,10 +117,12 @@ struct FloatingText {
   Vector2f velocity;
   float lifetime;
   SDL_Color color;
+  int size;
 
   FloatingText(const std::string &t, const Vector2f &pos, const Vector2f &vel,
-               float life, const SDL_Color &col)
-      : text(t), position(pos), velocity(vel), lifetime(life), color(col) {}
+               float life, const SDL_Color &col, int size = 16)
+      : text(t), position(pos), velocity(vel), lifetime(life), color(col),
+        size(size) {}
 };
 
 class Character : public Entity {

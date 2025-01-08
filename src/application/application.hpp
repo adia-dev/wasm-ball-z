@@ -41,5 +41,6 @@ private:
   void cleanup();
 
   void toggle_pause();
+  void update_game_state(double delta_time);
 };
 } // namespace wbz

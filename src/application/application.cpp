@@ -93,7 +93,7 @@ void Application::update() {
   }
   _game_state.map.update(_delta_time);
 
-  _game_manager.update();
+  _game_manager.update(_delta_time);
 
   managers::InputManager::update();
 }

@@ -11,7 +11,7 @@ public:
   explicit GameManager(GameState &game_state) : _game_state(game_state) {}
 
   void init();
-  void update();
+  void update(float delta_time);
   void cleanup();
 
 private:
@@ -22,6 +22,7 @@ private:
   void handle_combat_input(std::shared_ptr<entities::Character> player);
   void update_cpu_behavior(std::shared_ptr<entities::Character> cpu,
                            std::shared_ptr<entities::Character> player);
+  void check_hit_detection(std::shared_ptr<entities::Character> attacker);
 };
 } // namespace managers
 } // namespace wbz
