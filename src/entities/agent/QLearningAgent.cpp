@@ -6,10 +6,10 @@ QLearningAgent::QLearningAgent(float learning_rate, float discount_factor,
                                float exploration_rate)
     : learning_rate(learning_rate), discount_factor(discount_factor),
       exploration_rate(exploration_rate), rng(std::random_device{}()) {
-  // Initialize Q-table with small positive values to encourage exploration
-  for (int i = 0; i < 5; i++) {     // For each distance bin
-    for (int j = 0; j < 5; j++) {   // For each relative_x bin
-      for (int k = 0; k < 5; k++) { // For each relative_y bin
+
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+      for (int k = 0; k < 5; k++) {
         State state;
         state.distance_bin = i;
         state.relative_x_bin = j;
@@ -20,8 +20,7 @@ QLearningAgent::QLearningAgent(float learning_rate, float discount_factor,
 
         std::string state_key = state.to_string();
         q_table[state_key] =
-            std::vector<float>(static_cast<int>(Action::ACTION_COUNT),
-                               0.1f); // Small positive initial values
+            std::vector<float>(static_cast<int>(Action::ACTION_COUNT), 0.1f);
       }
     }
   }
@@ -46,11 +45,10 @@ State QLearningAgent::get_state(const Vector2f &agent_pos,
 Action QLearningAgent::select_action(const State &state) {
   std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
-  // Special handling for out-of-radar situations
   if (!state.opponent_in_radar) {
-    // Increase exploration when opponent is lost
-    if (dist(rng) < 0.7f) { // 70% chance of exploration moves
-      // Prioritize movement actions to find opponent
+
+    if (dist(rng) < 0.7f) {
+
       std::vector<Action> search_actions = {Action::MOVE_LEFT,
                                             Action::MOVE_RIGHT, Action::MOVE_UP,
                                             Action::MOVE_DOWN};
@@ -58,9 +56,8 @@ Action QLearningAgent::select_action(const State &state) {
     }
   }
 
-  // Combat range behavior
-  if (state.distance_bin <= 2) { // Close range
-    if (dist(rng) < 0.4f) {      // 40% chance of attack actions
+  if (state.distance_bin <= 2) {
+    if (dist(rng) < 0.4f) {
       std::vector<Action> attack_actions = {
           Action::LIGHT_PUNCH, Action::HEAVY_PUNCH, Action::LIGHT_KICK,
           Action::HEAVY_KICK};
@@ -68,7 +65,6 @@ Action QLearningAgent::select_action(const State &state) {
     }
   }
 
-  // Normal exploration vs exploitation
   if (dist(rng) < exploration_rate) {
     return static_cast<Action>(std::uniform_int_distribution<int>(
         0, static_cast<int>(Action::ACTION_COUNT) - 1)(rng));
@@ -101,46 +97,40 @@ float QLearningAgent::calculate_reward(float health_change,
                                        bool radar_in_range) {
   float reward = 0.0f;
 
-  // First, let's define our optimal ranges more precisely
-  const float OPTIMAL_COMBAT_DISTANCE = 120.0f; // Our ideal fighting distance
+  const float OPTIMAL_COMBAT_DISTANCE = 120.0f;
   const float CLOSE_RANGE = 80.0f;
   const float MID_RANGE = 200.0f;
   const float FAR_RANGE = 300.0f;
 
-  // Now we create a more nuanced distance-based reward system
   float distance_reward = 0.0f;
   if (radar_in_range) {
-    // Calculate how far we are from optimal distance as a percentage
+
     float distance_deviation =
         std::abs(distance - OPTIMAL_COMBAT_DISTANCE) / OPTIMAL_COMBAT_DISTANCE;
 
-    // Convert this into a reward that peaks at optimal distance and falls off
-    // gradually
     distance_reward = 2.0f * (1.0f - std::min(1.0f, distance_deviation));
 
-    // Add specific situational rewards/penalties
     if (distance < CLOSE_RANGE) {
-      distance_reward -= 1.0f; // Penalty for being too close
+      distance_reward -= 1.0f;
       std::cout << "⚠️ Too close for comfort! Distance penalty: -1.0"
                 << std::endl;
     } else if (distance > FAR_RANGE) {
-      distance_reward -= 2.0f; // Larger penalty for being too far
+      distance_reward -= 2.0f;
       std::cout << "⚠️ Too far to be effective! Distance penalty: -2.0"
                 << std::endl;
     } else if (std::abs(distance - OPTIMAL_COMBAT_DISTANCE) < 20.0f) {
-      distance_reward += 1.0f; // Bonus for maintaining optimal distance
+      distance_reward += 1.0f;
       std::cout << "✨ Perfect combat range! Bonus: +1.0" << std::endl;
     }
 
     std::cout << "📏 Distance reward/penalty: " << distance_reward << std::endl;
   } else {
-    // When out of radar, give a significant base penalty
+
     distance_reward = -3.0f;
     std::cout << "🔍 Out of radar range penalty: -3.0" << std::endl;
   }
   reward += distance_reward;
 
-  // Track distance changes to reward improvement
   static float previous_distance_deviation = std::numeric_limits<float>::max();
   float current_distance_deviation =
       std::abs(distance - OPTIMAL_COMBAT_DISTANCE);
@@ -157,12 +147,10 @@ float QLearningAgent::calculate_reward(float health_change,
   }
   previous_distance_deviation = current_distance_deviation;
 
-  // Enhanced combat reward system
   if (hit_landed) {
-    // Base hit reward
+
     float hit_reward = 5.0f;
 
-    // Bonus for hitting from optimal range
     if (std::abs(distance - OPTIMAL_COMBAT_DISTANCE) < 30.0f) {
       hit_reward *= 1.5f;
       std::cout << "🎯 Perfect range hit bonus! Reward multiplier: 1.5x"
@@ -173,11 +161,10 @@ float QLearningAgent::calculate_reward(float health_change,
     std::cout << "💥 Hit landed reward: +" << hit_reward << std::endl;
   }
 
-  // Defensive positioning reward
   if (got_hit) {
     float defense_penalty = -4.0f;
     if (distance < CLOSE_RANGE) {
-      defense_penalty *= 1.5f; // Bigger penalty for getting hit while too close
+      defense_penalty *= 1.5f;
       std::cout << "💔 Vulnerable position hit! Extra penalty applied"
                 << std::endl;
     }
@@ -185,11 +172,10 @@ float QLearningAgent::calculate_reward(float health_change,
     std::cout << "💔 Got hit penalty: " << defense_penalty << std::endl;
   }
 
-  // Modified inactivity penalty that considers position
   if (time_since_last_action > 0.5f) {
     float inactivity_penalty = -0.3f * time_since_last_action;
     if (!radar_in_range || distance > FAR_RANGE) {
-      inactivity_penalty *= 2.0f; // Double penalty when out of position
+      inactivity_penalty *= 2.0f;
       std::cout << "⏰ Double inactivity penalty due to poor positioning"
                 << std::endl;
     }
@@ -310,7 +296,7 @@ float QLearningAgent::get_distance_trend() {
 }
 void QLearningAgent::update_distance_history(float current_distance) {
   _distance_history.push_back(current_distance);
-  if (_distance_history.size() > 60) { // Keep last second of history (at 60fps)
+  if (_distance_history.size() > 60) {
     _distance_history.erase(_distance_history.begin());
   }
 }
